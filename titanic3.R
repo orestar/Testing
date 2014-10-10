@@ -87,15 +87,15 @@ titanic2 <- data.frame(
                         Pclass=titanic$Pclass,
                         Sex=titanic$Sex,
                         Age=titanic$Age,
-                        #SibSp=titanic$SibSp,
-                        #Parch=titanic$Parch,
+                        SibSp=titanic$SibSp,
+                        Parch=titanic$Parch,
                         Embarked=titanic$Embarked,
-                        #Fare=titanic$Fare
-                        #Lastname=titanic$Lastname,
-                        #Title=titanic$Title,
+                        Fare=titanic$Fare,
+                        Lastname=titanic$Lastname,
+                        Title=titanic$Title,
                         FamSize=titanic$FamSize,
-                        FareAvg=titanic$FareAvg
-                        #Deck=titanic$Deck
+                        FareAvg=titanic$FareAvg,
+                        Deck=titanic$Deck
                 )
 set.seed(314)
 inTrain <- createDataPartition(y=titanic2$Survived, p=0.8, list=FALSE)
@@ -106,14 +106,14 @@ modFitRF <- randomForest(Survived~ ., data=training)
 predictionRF <- predict(modFitRF,testing[,-1])
 confusionMatrix(testing$Survived, predictionRF)
 
-modFitGLM <- train(Survived~ ., data=training, method = "glm")
+modFitGLM <- lm(as.numeric(Survived)~ Pclass + Age + SibSp + Embarked + Fare + 
+                           Lastname + Title + FamSize + Deck, data=training)
 predictionGLM <- predict(modFitGLM,testing[,-1])
 confusionMatrix(testing$Survived, predictionGLM)
 
-predDF <- data.frame(predictionRF,predictionGLM,Survived=testing$Survived)
-combModFit <- train(Survived ~.,method="gam",data=predDF)
-combPred <- predict(combModFit,predDF[,-3])
-confusionMatrix(predDF$Survived, combPred)
+full.model <- lm(as.numeric(Survived)~ ., data=training)
+reduced.model <- step(full.model, direction="backward")
+
 #######################################################################
 summary(titanic)
 names(titanic)
