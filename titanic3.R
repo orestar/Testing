@@ -78,21 +78,24 @@ titanic$Pclass <- as.factor(titanic$Pclass)
 titanic$SibSp <- as.factor(titanic$SibSp)
 titanic$Parch <- as.factor(titanic$Parch)
 titanic$FamSize <- as.factor(titanic$FamSize)
-
+titanic$Deck <- as.factor(titanic$Deck)
+titanic$Embarked <- as.factor(titanic$Embarked)
+titanic$Title <- as.factor(as.character(titanic$Title))
 #######################################################################
 titanic2 <- data.frame(
                         Survived=titanic$Survived,
                         Pclass=titanic$Pclass,
                         Sex=titanic$Sex,
                         Age=titanic$Age,
-                        SibSp=titanic$SibSp,
-                        Parch=titanic$Parch,
+                        #SibSp=titanic$SibSp,
+                        #Parch=titanic$Parch,
                         Embarked=titanic$Embarked,
+                        #Fare=titanic$Fare
                         #Lastname=titanic$Lastname,
-                        Title=titanic$Title,
+                        #Title=titanic$Title,
                         FamSize=titanic$FamSize,
-                        FareAvg=titanic$FareAvg,
-                        Deck=titanic$Deck
+                        FareAvg=titanic$FareAvg
+                        #Deck=titanic$Deck
                 )
 set.seed(314)
 inTrain <- createDataPartition(y=titanic2$Survived, p=0.8, list=FALSE)
@@ -106,6 +109,28 @@ confusionMatrix(testing$Survived, predictionRF)
 modFitGLM <- train(Survived~ ., data=training, method = "glm")
 predictionGLM <- predict(modFitGLM,testing[,-1])
 confusionMatrix(testing$Survived, predictionGLM)
+
+predDF <- data.frame(predictionRF,predictionGLM,Survived=testing$Survived)
+combModFit <- train(Survived ~.,method="gam",data=predDF)
+combPred <- predict(combModFit,predDF[,-3])
+confusionMatrix(predDF$Survived, combPred)
 #######################################################################
-summary(titanic2)
+summary(titanic)
+names(titanic)
 names(titanic2)
+
+summary(table(titanic$Survived, titanic$Title))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
