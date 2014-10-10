@@ -3,16 +3,12 @@ library(caret); library(randomForest)
 # Loads and preprocesses the data
 titanic <- read.csv("train.csv")
 
-# Exploratory summary
-#summary(titanic)
-
 
 # Imputes the missing embarkation entries
 titanic$Embarked[titanic$Embarked==""] <- "S"
 
 
-### Since about 20% of the age entries were missing, we first impute the ages
-### by the implication from the titles.
+### Imputes the ages by the implication from the titles.
 # Extracts titles and lastnames
 names <- as.character(titanic$Name)
 lastname <- sapply(names,function(x) strsplit(x,",")[[1]][1])
@@ -23,6 +19,9 @@ title <- sapply(title,function(x) strsplit(x," ")[[1]][2])
 title <- as.vector(title)
 titanic$Title <- as.factor(title)
 
+# Assuming all passengers with unusual titles were much attended and hence all 
+# their info were not missing, it is okay to first impute the ages base on the 
+# titles before reducing the titles.
 titleNoAge <- unique(titanic$Title[is.na(titanic$Age)])
 imputeMrAge <- median(titanic$Age[titanic$Title=="Mr."],na.rm=TRUE)
 imputeMrsAge <- median(titanic$Age[titanic$Title=="Mrs."],na.rm=TRUE)
@@ -34,10 +33,6 @@ titanic$Age[titanic$Title=="Mrs." & is.na(titanic$Age)] <- imputeMrsAge
 titanic$Age[titanic$Title=="Miss." & is.na(titanic$Age)] <- imputeMissAge
 titanic$Age[titanic$Title=="Master." & is.na(titanic$Age)] <- imputeMasterAge
 titanic$Age[titanic$Title=="Dr." & is.na(titanic$Age)] <- imputeDrAge
-
-
-titanic$FamSize <- as.vector(titanic$SibSp+titanic$Parch+c(1))
-titanic$FareAvg <- as.vector(titanic$Fare / titanic$FamSize)
 
 
 # Reduces titles 
@@ -73,6 +68,29 @@ titanic$Deck <- sapply(titanic$Cabin,deck)
 titanic$Deck[which(titanic$Deck=="T")] <- ""
 titanic$Deck[which(titanic$Deck=="")] <- "Z"
 
+
+titanic$FamSize <- as.vector(titanic$SibSp+titanic$Parch+c(1))
+titanic$FareAvg <- as.vector(as.numeric(titanic$Fare/titanic$FamSize))
+
+
+# Groups families together
+titanic$Team <- titanic$Lastname
+titanic$Team[titanic$FamSize==1] <- "LoneWolf"
+famTeam <- unique(titanic$Fare[which(titanic$Team != "LoneWolf")])
+for(x in famTeam){
+        indice <- which(titanic$Fare==x);
+        for(i in indice){
+                titanic$Team[i] <- paste(
+                                         titanic$Lastname[i],"_",
+                                         titanic$Fare[i],"_",
+                                         titanic$Embarked[i],"_",
+                                         titanic$Pclass[i],
+                                         sep="") 
+        }        
+}
+
+
+
 titanic$Survived <- as.factor(titanic$Survived)
 titanic$Pclass <- as.factor(titanic$Pclass)
 titanic$SibSp <- as.factor(titanic$SibSp)
@@ -81,22 +99,41 @@ titanic$FamSize <- as.factor(titanic$FamSize)
 titanic$Deck <- as.factor(titanic$Deck)
 titanic$Embarked <- as.factor(titanic$Embarked)
 titanic$Title <- as.factor(as.character(titanic$Title))
-#######################################################################
+titanic$Team <- as.factor(titanic$Team)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+####################### Modeling & Predictions ##################################
 titanic2 <- data.frame(
                         Survived=titanic$Survived,
                         Pclass=titanic$Pclass,
-                        Sex=titanic$Sex,
+                        #Sex=titanic$Sex,
                         Age=titanic$Age,
-                        SibSp=titanic$SibSp,
+                        #SibSp=titanic$SibSp,
                         Parch=titanic$Parch,
-                        Embarked=titanic$Embarked,
-                        Fare=titanic$Fare,
+                        #Embarked=titanic$Embarked,
+                        #Fare=titanic$Fare,
                         Lastname=titanic$Lastname,
                         Title=titanic$Title,
-                        FamSize=titanic$FamSize,
-                        FareAvg=titanic$FareAvg,
-                        Deck=titanic$Deck
+                        #FamSize=titanic$FamSize,
+                        #FareAvg=titanic$FareAvg,
+                        Deck=titanic$Deck,
+                        Team=titanic$Team
                 )
+
 set.seed(314)
 inTrain <- createDataPartition(y=titanic2$Survived, p=0.8, list=FALSE)
 training <- titanic2[inTrain,]
@@ -106,10 +143,10 @@ modFitRF <- randomForest(Survived~ ., data=training)
 predictionRF <- predict(modFitRF,testing[,-1])
 confusionMatrix(testing$Survived, predictionRF)
 
-modFitGLM <- lm(as.numeric(Survived)~ Pclass + Age + SibSp + Embarked + Fare + 
-                           Lastname + Title + FamSize + Deck, data=training)
-predictionGLM <- predict(modFitGLM,testing[,-1])
-confusionMatrix(testing$Survived, predictionGLM)
+modFitLM <- lm(as.numeric(Survived)~ Pclass + Age + Parch + Lastname + Title + 
+                        Deck + Team, data=training)
+predictionLM <- predict(modFitLM,testing[,-1])
+confusionMatrix(testing$Survived, predictionLM)
 
 full.model <- lm(as.numeric(Survived)~ ., data=training)
 reduced.model <- step(full.model, direction="backward")
@@ -119,18 +156,35 @@ summary(titanic)
 names(titanic)
 names(titanic2)
 
-summary(table(titanic$Survived, titanic$Title))
 
 
+plot(Survived~FamSize, data=titanic)
+plot(Survived~SibSp, data=titanic)
+plot(Survived~Parch, data=titanic)
+plot(Age~Sex, data=titanic)
+plot(FamSize~Sex, data=titanic)
+plot(Sex~SibSp, data=titanic)
+plot(FamSize~Pclass, data=titanic)
+
+table(titanic$Pclass,titanic$FamSize)
+
+table(titanic$Pclass,titanic$SibSp)
+
+table(titanic$Pclass,titanic$Parch)
+
+table(titanic$Sex,titanic$SibSp)
+
+table(titanic$Sex,titanic$FamSize)
+
+table(titanic$Survived,titanic$Parch)
+
+table(titanic$Survived,titanic$SibSp)
+
+table(titanic$Survived,titanic$FamSize)
 
 
-
-
-
-
-
-
-
+head(titanic[order(titanic$Team,titanic$Age,titanic$Sex),c(5,6,14,18)],20)
+titanic[order(titanic$Team,titanic$Age,titanic$Sex),]
 
 
 
