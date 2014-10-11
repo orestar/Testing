@@ -80,7 +80,7 @@ famTeam <- which(!titanic$Team=="LoneWolf")
 for(i in famTeam){
         titanic$Team[i] <- paste(
                 titanic$Lastname[i],"_",
-                titanic$Ticket[i],"_",
+                titanic$Fare[i],"_",
                 titanic$Embarked[i],"_",
                 titanic$Pclass[i],"_",
                 titanic$FamSize[i],
@@ -106,9 +106,9 @@ for(i in famTeam){
 FATHER=0; MOTHER=0; DAUGHTER1=0; SON1 =0; DAUGHTER2=0; SON2=0
 
 head(titanic,50)
-t <- data.frame(Ticket=titanic$Ticket,Age=titanic$Age,Parch=titanic$Parch,SibSp=titanic$SibSp,Title=titanic$Title,FamSize=titanic$FamSize,Team=titanic$Team)
+t <- data.frame(Ticket=titanic$Ticket,Age=titanic$Age,Parch=titanic$Parch,SibSp=titanic$SibSp,Title=titanic$Title,FamSize=titanic$FamSize,Team=titanic$Team, Relation=titanic$Relation)
 t <- t[order(t$Team),]
-t[which(t$Relation==4),]
+t[which(t$Relation==40),]
 
 
 # Rule 1:
@@ -146,9 +146,53 @@ titanic$Relation[titanic$FamSize==1 & titanic$Age<19 &
                          (titanic$Title=="Miss." | titanic$Title=="Lady.")] <- tie
 
 family <- unique(titanic$Team[which(titanic$Team!="LoneWolf")])
-for(fam in family){
+for(fam in family)
+{
         indices <- which(titanic$Team==fam)
-        print(paste("(",indices,"),",fam,sep=""))
+        if(titanic$FamSize[indices[1]]==2 && titanic$SibSp[indices[1]]==1)
+        {
+                if("Mrs." %in% titanic$Title[indices])
+                {
+                        # Rule 7:
+                        FATHER=1; MOTHER=1; DAUGHTER1=0; SON1 =0; DAUGHTER2=0; SON2=0;
+                        tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2;
+                        titanic$Relation[indices] <- tie
+                }
+                
+                else if("Miss." %in% titanic$Title[indices] || "Lady." %in% titanic$Title[indices])
+                {
+                        # Brother and Sister
+                        if("Mr." %in% titanic$Title[indices] || "Master." %in% titanic$Title[indices])
+                        {
+                                FATHER=0; MOTHER=0; DAUGHTER1=1; SON1 =1; DAUGHTER2=0; SON2=0;
+                                tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2;
+                                titanic$Relation[indices] <- tie  
+                        }
+                        else # Sisters
+                        {
+                                FATHER=0; MOTHER=0; DAUGHTER1=1; SON1 =0; DAUGHTER2=1; SON2=0;
+                                tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2;
+                                titanic$Relation[indices] <- tie 
+                        }
+                }
+                else if (length(indices)==2)
+                {
+                        # Brothers
+                        if(titanic$Title[indices][1]==titanic$Title[indices][2])
+                        {
+                                FATHER=0; MOTHER=0; DAUGHTER1=0; SON1 =1; DAUGHTER2=1; SON2=0;
+                                tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2;
+                                titanic$Relation[indices] <- tie   
+                        }
+                }
+                else
+                {
+                        FATHER=1; MOTHER=1; DAUGHTER1=0; SON1 =0; DAUGHTER2=0; SON2=0;
+                        tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2;
+                        titanic$Relation[indices] <- tie
+                }
+                
+        }
 }
 
 
