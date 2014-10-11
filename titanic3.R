@@ -109,39 +109,44 @@ for(x in famTeam){
 ###
 FATHER="0"; MOTHER="0"; DAUGHTER="0"; SON1 ="0"; SON2="0"
 
+head(titanic,50)
+t <- data.frame(Age=titanic$Age,Parch=titanic$Parch,Title=titanic$Title,FamSize=titanic$FamSize,Team=titanic$Team,Relation=titanic$Relation)
+
+t[which(t$Relation=="00100"),]
+
+
 # Rule 1:
 FATHER="1"; MOTHER="0"; DAUGHTER="0"; SON1 ="0"; SON2="0"
 tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
 titanic$Relation[titanic$FamSize==1 & titanic$Age>=18 &
                          (titanic$Title=="Mr." | titanic$Title=="Sir.")] <- tie
-titanic$Relation <- as.factor(titanic$Relation)
-
 
 # Rule 2:
 FATHER="0"; MOTHER="1"; DAUGHTER="0"; SON1 ="0"; SON2="0"
 tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
-titanic$relation[titanic$FamSize==1 & titanic$Title=="Mrs."] <- tie
+titanic$Relation[titanic$FamSize==1 & titanic$Title=="Mrs."] <- tie
+
 
 # Rule 3:
 FATHER="0"; MOTHER="1"; DAUGHTER="0"; SON1 ="0"; SON2="0"
 tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
-titanic$relation[titanic$FamSize==1 & titanic$Age>=19 &
+titanic$Relation[titanic$FamSize==1 & titanic$Age>=19 &
                          (titanic$Title=="Miss." | titanic$Title=="Lady.")] <- tie
 
 # Rule 4:
 FATHER="0"; MOTHER="0"; DAUGHTER="0"; SON1 ="1"; SON2="0"
 tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
-titanic$relation[titanic$FamSize==1 & titanic$Age<18 & titanic$Title=="Mr."] <- tie
+titanic$Relation[titanic$FamSize==1 & titanic$Age<18 & titanic$Title=="Mr."] <- tie
 
 # Rule 5:
 FATHER="0"; MOTHER="0"; DAUGHTER="0"; SON1 ="1"; SON2="0"
 tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
-titanic$relation[titanic$FamSize==1 & titanic$Title=="Master."] <- tie
+titanic$Relation[titanic$FamSize==1 & titanic$Title=="Master."] <- tie
 
 # Rule 6:
 FATHER="0"; MOTHER="0"; DAUGHTER="1"; SON1 ="0"; SON2="0"
 tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
-titanic$relation[titanic$FamSize==1 & titanic$Age<19 &
+titanic$Relation[titanic$FamSize==1 & titanic$Age<19 &
                          (titanic$Title=="Miss." | titanic$Title=="Lady.")] <- tie
 
 
