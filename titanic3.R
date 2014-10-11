@@ -9,7 +9,7 @@ titanic$Embarked[titanic$Embarked==""] <- "S"
 
 
 ### Imputes the ages by the implication from the titles.
-# Extracts titles and lastnames
+# Extracts titles and lastnames (for later use)
 names <- as.character(titanic$Name)
 lastname <- sapply(names,function(x) strsplit(x,",")[[1]][1])
 titanic$Lastname <- as.vector(lastnames)
@@ -27,7 +27,7 @@ imputeMrAge <- median(titanic$Age[titanic$Title=="Mr."],na.rm=TRUE)
 imputeMrsAge <- median(titanic$Age[titanic$Title=="Mrs."],na.rm=TRUE)
 imputeMissAge <- median(titanic$Age[titanic$Title=="Miss."],na.rm=TRUE)
 imputeMasterAge <- median(titanic$Age[titanic$Title=="Master."],na.rm=TRUE)
-imputeDrAge <- median(titanic$Age[titanic$Title=="Dr."&titanic$Sex=="male"],na.rm=TRUE)
+imputeDrAge <- median(titanic$Age[titanic$Title=="Dr."],na.rm=TRUE)
 titanic$Age[titanic$Title=="Mr." & is.na(titanic$Age)] <- imputeMrAge
 titanic$Age[titanic$Title=="Mrs." & is.na(titanic$Age)] <- imputeMrsAge
 titanic$Age[titanic$Title=="Miss." & is.na(titanic$Age)] <- imputeMissAge
@@ -76,21 +76,112 @@ titanic$FareAvg <- as.vector(as.numeric(titanic$Fare/titanic$FamSize))
 # Groups families together
 titanic$Team <- titanic$Lastname
 titanic$Team[titanic$FamSize==1] <- "LoneWolf"
-famTeam <- unique(titanic$Fare[which(titanic$Team != "LoneWolf")])
+famTeam <- unique(titanic$Fare[titanic$Team!="LoneWolf"])
 for(x in famTeam){
         indice <- which(titanic$Fare==x);
         for(i in indice){
-                titanic$Team[i] <- paste(
-                                         titanic$Lastname[i],"_",
-                                         titanic$Fare[i],"_",
-                                         titanic$Embarked[i],"_",
-                                         titanic$Pclass[i],
-                                         sep="") 
+                if(titanic$Team[i]!="LoneWolf"){
+                                        titanic$Team[i] <- paste(
+                                                 titanic$Lastname[i],"_",
+                                                titanic$Fare[i],"_",
+                                                titanic$Embarked[i],"_",
+                                                titanic$Pclass[i],
+                                                sep="")
+                        } 
         }        
 }
 
 
+################ Derives relations with the families ###########################
+# Structure: Binary tuples (Father, Mother, Daughter, Son1, Son2)
+# Rules:
+# 1. A Mr./Sir. of age >= 18 traveled alone is Father.
+# 2. A Mrs. traveled alone is Mother.
+# 3. A Miss./Lady. of age >= 19 is Mother.
+# 4. A Mr. of age < 18 traveled alone is Son1.
+# 5. A Master. traveled alone is Son1.
+# 6. A Miss./Lady. of age < 19 is Daughter.
+# 7. A Mr. and a Mrs. with FamSize=2 are Father and Mother.
+# 8. If there was n Mrs. in a team and the largest difference in age is less 
+#    than 18, the members of the team are siblings.
+# 9. If the largest difference in age is at least 18 and Parch>0, the oldest 
+#    member is a parent to the youngest one. 
+###
+FATHER="0"; MOTHER="0"; DAUGHTER="0"; SON1 ="0"; SON2="0"
 
+# Rule 1:
+FATHER="1"; MOTHER="0"; DAUGHTER="0"; SON1 ="0"; SON2="0"
+tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
+titanic$Relation[titanic$FamSize==1 & titanic$Age>=18 &
+                         (titanic$Title=="Mr." | titanic$Title=="Sir.")] <- tie
+titanic$Relation <- as.factor(titanic$Relation)
+
+
+# Rule 2:
+FATHER="0"; MOTHER="1"; DAUGHTER="0"; SON1 ="0"; SON2="0"
+tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
+titanic$relation[titanic$FamSize==1 & titanic$Title=="Mrs."] <- tie
+
+# Rule 3:
+FATHER="0"; MOTHER="1"; DAUGHTER="0"; SON1 ="0"; SON2="0"
+tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
+titanic$relation[titanic$FamSize==1 & titanic$Age>=19 &
+                         (titanic$Title=="Miss." | titanic$Title=="Lady.")] <- tie
+
+# Rule 4:
+FATHER="0"; MOTHER="0"; DAUGHTER="0"; SON1 ="1"; SON2="0"
+tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
+titanic$relation[titanic$FamSize==1 & titanic$Age<18 & titanic$Title=="Mr."] <- tie
+
+# Rule 5:
+FATHER="0"; MOTHER="0"; DAUGHTER="0"; SON1 ="1"; SON2="0"
+tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
+titanic$relation[titanic$FamSize==1 & titanic$Title=="Master."] <- tie
+
+# Rule 6:
+FATHER="0"; MOTHER="0"; DAUGHTER="1"; SON1 ="0"; SON2="0"
+tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
+titanic$relation[titanic$FamSize==1 & titanic$Age<19 &
+                         (titanic$Title=="Miss." | titanic$Title=="Lady.")] <- tie
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Categorizes the variables
 titanic$Survived <- as.factor(titanic$Survived)
 titanic$Pclass <- as.factor(titanic$Pclass)
 titanic$SibSp <- as.factor(titanic$SibSp)
