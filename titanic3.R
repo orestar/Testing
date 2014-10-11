@@ -107,45 +107,45 @@ for(x in famTeam){
 # 9. If the largest difference in age is at least 18 and Parch>0, the oldest 
 #    member is a parent to the youngest one. 
 ###
-FATHER="0"; MOTHER="0"; DAUGHTER="0"; SON1 ="0"; SON2="0"
+FATHER=0; MOTHER=0; DAUGHTER1=0; SON1 =0; DAUGHTER2=0; SON2=0
 
 head(titanic,50)
 t <- data.frame(Age=titanic$Age,Parch=titanic$Parch,Title=titanic$Title,FamSize=titanic$FamSize,Team=titanic$Team,Relation=titanic$Relation)
 
-t[which(t$Relation=="00100"),]
+t[which(t$Relation==4),]
 
 
 # Rule 1:
-FATHER="1"; MOTHER="0"; DAUGHTER="0"; SON1 ="0"; SON2="0"
-tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
+FATHER=1; MOTHER=0; DAUGHTER1=0; SON1 =0; DAUGHTER2=0; SON2=0
+tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2
 titanic$Relation[titanic$FamSize==1 & titanic$Age>=18 &
                          (titanic$Title=="Mr." | titanic$Title=="Sir.")] <- tie
 
 # Rule 2:
-FATHER="0"; MOTHER="1"; DAUGHTER="0"; SON1 ="0"; SON2="0"
-tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
+FATHER=0; MOTHER=1; DAUGHTER1=0; SON1 =0; DAUGHTER2=0; SON2=0
+tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2
 titanic$Relation[titanic$FamSize==1 & titanic$Title=="Mrs."] <- tie
 
 
 # Rule 3:
-FATHER="0"; MOTHER="1"; DAUGHTER="0"; SON1 ="0"; SON2="0"
-tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
+FATHER=0; MOTHER=1; DAUGHTER1=0; SON1 =0; DAUGHTER2=0; SON2=0
+tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2
 titanic$Relation[titanic$FamSize==1 & titanic$Age>=19 &
                          (titanic$Title=="Miss." | titanic$Title=="Lady.")] <- tie
 
 # Rule 4:
-FATHER="0"; MOTHER="0"; DAUGHTER="0"; SON1 ="1"; SON2="0"
-tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
+FATHER=0; MOTHER=0; DAUGHTER1=0; SON1 =1; DAUGHTER2=0; SON2=0
+tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2
 titanic$Relation[titanic$FamSize==1 & titanic$Age<18 & titanic$Title=="Mr."] <- tie
 
 # Rule 5:
-FATHER="0"; MOTHER="0"; DAUGHTER="0"; SON1 ="1"; SON2="0"
-tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
+FATHER=0; MOTHER=0; DAUGHTER1=0; SON1 =1; DAUGHTER2=0; SON2=0
+tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2
 titanic$Relation[titanic$FamSize==1 & titanic$Title=="Master."] <- tie
 
 # Rule 6:
-FATHER="0"; MOTHER="0"; DAUGHTER="1"; SON1 ="0"; SON2="0"
-tie <- paste(FATHER, MOTHER, DAUGHTER, SON1, SON2, sep="")
+FATHER=0; MOTHER=0; DAUGHTER1=1; SON1 =0; DAUGHTER2=0; SON2=0
+tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2
 titanic$Relation[titanic$FamSize==1 & titanic$Age<19 &
                          (titanic$Title=="Miss." | titanic$Title=="Lady.")] <- tie
 
