@@ -74,21 +74,17 @@ titanic$FareAvg <- as.vector(as.numeric(titanic$Fare/titanic$FamSize))
 
 
 # Groups families together
-titanic$Team <- titanic$Lastname
+titanic$Team=""
 titanic$Team[titanic$FamSize==1] <- "LoneWolf"
-famTeam <- unique(titanic$Fare[titanic$Team!="LoneWolf"])
-for(x in famTeam){
-        indice <- which(titanic$Fare==x);
-        for(i in indice){
-                if(titanic$Team[i]!="LoneWolf"){
-                                        titanic$Team[i] <- paste(
-                                                 titanic$Lastname[i],"_",
-                                                titanic$Fare[i],"_",
-                                                titanic$Embarked[i],"_",
-                                                titanic$Pclass[i],
-                                                sep="")
-                        } 
-        }        
+famTeam <- which(!titanic$Team=="LoneWolf")
+for(i in famTeam){
+        titanic$Team[i] <- paste(
+                titanic$Lastname[i],"_",
+                titanic$Ticket[i],"_",
+                titanic$Embarked[i],"_",
+                titanic$Pclass[i],"_",
+                titanic$FamSize[i],
+                sep="")        
 }
 
 
@@ -110,8 +106,8 @@ for(x in famTeam){
 FATHER=0; MOTHER=0; DAUGHTER1=0; SON1 =0; DAUGHTER2=0; SON2=0
 
 head(titanic,50)
-t <- data.frame(Age=titanic$Age,Parch=titanic$Parch,Title=titanic$Title,FamSize=titanic$FamSize,Team=titanic$Team,Relation=titanic$Relation)
-
+t <- data.frame(Ticket=titanic$Ticket,Age=titanic$Age,Parch=titanic$Parch,SibSp=titanic$SibSp,Title=titanic$Title,FamSize=titanic$FamSize,Team=titanic$Team)
+t <- t[order(t$Team),]
 t[which(t$Relation==4),]
 
 
@@ -149,8 +145,11 @@ tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2
 titanic$Relation[titanic$FamSize==1 & titanic$Age<19 &
                          (titanic$Title=="Miss." | titanic$Title=="Lady.")] <- tie
 
-
-
+family <- unique(titanic$Team[which(titanic$Team!="LoneWolf")])
+for(fam in family){
+        indices <- which(titanic$Team==fam)
+        print(paste("(",indices,"),",fam,sep=""))
+}
 
 
 
