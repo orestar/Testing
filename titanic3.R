@@ -172,10 +172,7 @@ for(fam in family)
                                 {
                                         
                                         if(titanic$Title[indices[1]]==titanic$Title[indices[2]])
-                                        {
                                                 titanic$Relation[indices] <- tie(SON1=1, SON2 =1)
-                                                print(titanic[indices,]);        
-                                        }
                                                 
                                         else
                                                 titanic$Relation[indices] <- tie(FATHER=1, MOTHER=1)
@@ -187,6 +184,83 @@ for(fam in family)
                         }
                                 
                                 
+                }
+                
+                if(titanic$Parch[indices[1]]==1)
+                {
+                        if(titanic$Title[indices[1]] == "Mrs.")
+                        {
+                                if(length(indices)>1)
+                                {
+                                        # Mother and daughter
+                                        if(titanic$Title[indices[2]]=="Miss.")
+                                                titanic$Relation[indices] <- tie(MOTHER=1, DAUGHTER1=1)
+                                        else # Mother and son
+                                                titanic$Relation[indices] <- tie(MOTHER=1, SON1=1)  
+                                }
+                                else # Mother and daughter
+                                        titanic$Relation[indices] <- tie(MOTHER=1, DAUGHTER1=1) 
+                                         
+                        }
+                        else if(titanic$Title[indices[1]] == "Miss.")
+                        {
+                                if(length(indices)>1)
+                                {
+                                        # Mother and daughter
+                                        if(titanic$Title[indices[2]]=="Mrs.")
+                                                titanic$Relation[indices] <- tie(MOTHER=1, DAUGHTER1=1)
+                                        else # Father and daughter
+                                                titanic$Relation[indices] <- tie(FATHER=1, DAUGHTER1=1)  
+                                }
+                                else # Mother and daughter
+                                        titanic$Relation[indices] <- tie(MOTHER=1, DAUGHTER1=1) 
+                                
+                        }
+                        else if(titanic$Title[indices[1]] == "Master." ||
+                                        (titanic$Title[indices[1]] == "Mr." && 
+                                                 titanic$Age[indices[1]] <= 18 ))
+                        {
+                                if(length(indices)>1)
+                                {
+                                        # Mother and son
+                                        if(titanic$Title[indices[2]]=="Mrs.")
+                                                titanic$Relation[indices] <- tie(MOTHER=1, SON1=1)
+                                        else # Father and son
+                                                titanic$Relation[indices] <- tie(FATHER=1, SON1=1)  
+                                }
+                                else # Mother and son
+                                        titanic$Relation[indices] <- tie(MOTHER=1, SON1=1) 
+                                
+                        }
+                        else if(titanic$Title[indices[1]] == "Mr." && 
+                                                 titanic$Age[indices[1]] > 18 )
+                        {
+                                if(length(indices)>1)
+                                {
+                                        # Mother and son
+                                        if(titanic$Title[indices[2]]=="Mrs.")
+                                                titanic$Relation[indices] <- tie(MOTHER=1, SON1=1)
+                                        else # Father and son
+                                                titanic$Relation[indices] <- tie(FATHER=1, SON1=1)  
+                                }
+                                else # FAther and son
+                                        titanic$Relation[indices] <- tie(FATHER=1, SON1=1) 
+                                
+                        }
+                        else
+                        {
+                                if(length(indices)>1)
+                                {
+                                        # Father and daughter
+                                        if(titanic$Title[indices[2]]=="Miss.")
+                                                titanic$Relation[indices] <- tie(FATHER=1, DAUGHTER1=1)
+                                        else # Father and son
+                                                titanic$Relation[indices] <- tie(FATHER=1, SON1=1)  
+                                }
+                                else # Father and son
+                                        titanic$Relation[indices] <- tie(FATHER=1, SON1=1) 
+                                
+                        }
                 }
         }
         
