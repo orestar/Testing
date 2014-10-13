@@ -107,8 +107,8 @@ FATHER=0; MOTHER=0; DAUGHTER1=0; SON1 =0; DAUGHTER2=0; SON2=0
 
 head(titanic,50)
 t <- data.frame(Ticket=titanic$Ticket,Age=titanic$Age,Parch=titanic$Parch,SibSp=titanic$SibSp,Title=titanic$Title,FamSize=titanic$FamSize,Team=titanic$Team, Relation=titanic$Relation)
-t <- t[order(t$Team),]
-t[which(t$Relation==40),]
+t <- t[order(t$Team, t$FamSize),]
+t[which(t$Relation==6 | t$Relation==10 | t$Relation==5 | t$Relation==9),]
 
 
 # Rule 1:
@@ -149,6 +149,7 @@ family <- unique(titanic$Team[which(titanic$Team!="LoneWolf")])
 for(fam in family)
 {
         indices <- which(titanic$Team==fam)
+        
         if(titanic$FamSize[indices[1]]==2 && titanic$SibSp[indices[1]]==1)
         {
                 if("Mrs." %in% titanic$Title[indices])
@@ -193,6 +194,47 @@ for(fam in family)
                 }
                 
         }
+        
+        
+        if(titanic$FamSize[indices[1]]==2 && titanic$Parch[indices[1]]==1)
+        {
+                if("Mrs." %in% titanic$Title[indices])
+                {
+                        # Mother and daughter
+                        if("Miss." %in% titanic$Title[indices])
+                        {
+                                FATHER=0; MOTHER=1; DAUGHTER1=1; SON1 =0; DAUGHTER2=0; SON2=0;
+                                tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2;
+                                titanic$Relation[indices] <- tie    
+                        }
+                        else # Mother and son
+                        {
+                                FATHER=0; MOTHER=1; DAUGHTER1=0; SON1 =1; DAUGHTER2=0; SON2=0;
+                                tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2;
+                                titanic$Relation[indices] <- tie    
+                        }    
+                        
+                }
+                # NEED FIX
+                else
+                {
+                        # Father and daughter
+                        if("Miss." %in% titanic$Title[indices])
+                        {
+                                FATHER=1; MOTHER=0; DAUGHTER1=1; SON1 =0; DAUGHTER2=0; SON2=0;
+                                tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2;
+                                titanic$Relation[indices] <- tie    
+                        }
+                        else # Father and son
+                        {
+                                FATHER=1; MOTHER=0; DAUGHTER1=0; SON1 =1; DAUGHTER2=0; SON2=0;
+                                tie <-1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2;
+                                titanic$Relation[indices] <- tie    
+                        }  
+                }
+        }
+        
+        
 }
 
 
