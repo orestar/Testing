@@ -263,7 +263,56 @@ for(fam in family)
                         }
                 }
         }
-        
+        # Groups of more than two passengers. Most probably there were at least 
+        # one parent and one child.
+        else 
+        {
+                famDf <- data.frame(Title=titanic$Title[indices],
+                                    Age=titanic$Age[indices],
+                                    Parch=titanic$Parch[indices],
+                                    SibSp=titanic$SibSp[indices],
+                                    FamSize=titanic$FamSize[indices]);
+                famDf <- famDf[order(famDf$Age),];
+                famDf <- famDf[rev(order(famDf$Title)),];
+                print(famDf)
+                if(sum(famDf$Parch==0)) # Only siblings and spouses traveled together
+                {
+                        sons <- 0; daughters <- 0;
+                        for(i in 1:nrow(famDf)){
+                                if(sons<2 && 
+                                           (famDf$Title[i]=="Mr." || 
+                                                    famDf$Title[i]=="Master." || 
+                                                    famDf$Title[i]=="Sir."))
+                                        sons <- sons+1
+                                if(daughters<2 && 
+                                           (famDf$Title[i]=="Miss." || 
+                                                    famDf$Title[i]=="Lady." ||
+                                                    famDf$Title[i]=="Mrs."))
+                                        daughters <- daughters+1
+                        }
+                        d1 <-0; d2 <-0; s1 <- 0; s2 <- 0;
+                        # Number of family memebers not in the training set
+                        notSeen <- famDf$FamSize[1]- nrow(famDf);
+                        if(notSeen==0) # Everyone was in the training set
+                        {
+                                if(daughters==1) {d1=1; d2=0}
+                                if(daughters==2) {d1=1; d2=1}
+                                if(sons==1) {s1=1; s2=0}
+                                if(sons==2) {s1=1; s2=1}
+                        }
+                        else
+                        {
+                                daughters <- daughters + floor(notSeen/2);
+                                sons <- sons + ceiling(notSeen/2);
+                                if(daughters==1) {d1=1; d2=0}
+                                if(daughters>=2) {d1=1; d2=1}
+                                if(sons==1) {s1=1; s2=0}
+                                if(sons>=2) {s1=1; s2=1}        
+                        }                        
+                        titanic$Relation[indices] <- tie(DAUGHTER1=d1, SON1=s1,
+                                                         DAUGHTER2=d2,SON2=s2) 
+                }
+        }
 }
 
 
