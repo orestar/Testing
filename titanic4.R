@@ -124,8 +124,28 @@ for(fam in family)
         print(famDf)
         
         fa<-0; ma<-0; d1<-0; s1<-0; d2<-0; s2<-0;
+        
         daughters <- 0;  sons <- 0;
         
+        # Married couples:
+        if(famDf$FamSize[1]==2  && famDf$SibSp[1]==1){
+                if(famDf$Title[1]=="Mrs." || famDf$Title[1]=="Lady."){
+                        if(length(indices)==1) {fa<-1; ma<-1}
+                        else{
+                                if(famDf$Title[2]=="Mr." || famDf$Title[2]=="Sir."){
+                                        if(famDf$Age[2]>=famDf$Age[1]-6){
+                                                fa<-1; ma<-1
+                                        }  
+                                }
+                        }
+                }
+                else if (famDf$Title[1]=="Mr." || famDf$Title[1]=="Sir."){
+                        if(length(indices)==1 && famDf$Age[1]>=18){
+                                fa<-1; ma<-1
+                        }
+                }
+                titanic$Relation[indices] <- tie(FATHER=fa, MOTHER=ma)
+        }  
 }
 
 
