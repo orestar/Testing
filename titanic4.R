@@ -165,7 +165,38 @@ for(fam in family)
                                                  DAUGHTER2=d2,SON2=s2)  
         }
         
-        
+        # Groups of three or more siblings (possibly with their spouses)
+        # with no parents
+        if(famDf$FamSize[1]>2 && sum(famDf$Parch)==0)
+        {
+                for(i in nrow(famDf):1){
+                        if(sons<2 && 
+                                   (famDf$Title[i]=="Mr." || 
+                                            famDf$Title[i]=="Master." || 
+                                            famDf$Title[i]=="Sir."))
+                                sons <- sons+1
+                        if(daughters<2 && 
+                                   (famDf$Title[i]=="Miss." || 
+                                            famDf$Title[i]=="Lady." ||
+                                            famDf$Title[i]=="Mrs."))
+                                daughters <- daughters+1
+                }
+                
+                # Number of family memebers not in the training set
+                notSeen <- famDf$FamSize[1]- nrow(famDf);
+                if(notSeen!=0) # Someone in the family was not in the training set
+                {
+                        daughters <- daughters + floor(notSeen/2);
+                        sons <- sons + ceiling(notSeen/2);
+                }
+                if(daughters==1) {d1=1; d2=0}
+                if(daughters>=2) {d1=1; d2=1}
+                if(sons==1) {s1=1; s2=0}
+                if(sons>=2) {s1=1; s2=1}
+                titanic$Relation[indices] <- tie(FATHER=fa, MOTHER=ma,
+                                                 DAUGHTER1=d1, SON1=s1,
+                                                 DAUGHTER2=d2,SON2=s2)
+        }
 }
 
 
