@@ -197,6 +197,52 @@ for(fam in family)
                                                  DAUGHTER1=d1, SON1=s1,
                                                  DAUGHTER2=d2,SON2=s2)
         }
+        
+        # At least one parent was on the ship 
+        else
+        {
+                children <- 0; parents <- 0;
+                firstChild <- 2;
+                
+                if(famDf$Title[1]=="Mrs."){
+                        ma <- 1;
+                        fa <- famDf$SibSp[1];
+                        children <- famDf$Parch[1];
+                        if(length(indices)>1){
+                                if(famDf$Title[2]=="Mr." && 
+                                           famDf$Age[2]>= famDf$Age[1]-8)
+                                        firstChild <- 3
+                                if(length(indices)>=firstChild){
+                                        for(i in nrow(famDf):firstChild){
+                                                if(sons<2 && 
+                                                           (famDf$Title[i]=="Mr." || 
+                                                                    famDf$Title[i]=="Master." || 
+                                                                    famDf$Title[i]=="Sir."))
+                                                        sons <- sons+1
+                                                if(daughters<2 && 
+                                                           (famDf$Title[i]=="Miss." || 
+                                                                    famDf$Title[i]=="Lady." ||
+                                                                    famDf$Title[i]=="Mrs."))
+                                                        daughters <- daughters+1
+                                        }
+                                }
+                        }
+                        # Number of children not in the training set
+                        notSeenChildren <- children-(nrow(famDf)-firstChild+1);
+                        if(notSeenChildren!=0) # Someone in the family was not in the training set
+                        {
+                                daughters <- daughters + floor(notSeenChildren/2);
+                                sons <- sons + ceiling(notSeenChildren/2);
+                        }
+                        if(daughters==1) {d1=1; d2=0}
+                        if(daughters>=2) {d1=1; d2=1}
+                        if(sons==1) {s1=1; s2=0}
+                        if(sons>=2) {s1=1; s2=1}
+                        titanic$Relation[indices] <- tie(FATHER=fa, MOTHER=ma,
+                                                         DAUGHTER1=d1, SON1=s1,
+                                                         DAUGHTER2=d2,SON2=s2)
+                }
+        }
 }
 
 
