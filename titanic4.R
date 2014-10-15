@@ -70,6 +70,8 @@ for(i in famTeam){
                 sep="")        
 }
 
+titanic$Relation <- c(0)
+
 tie <- function(FATHER=0, MOTHER=0, DAUGHTER1=0, SON1 =0, DAUGHTER2=0, SON2=0){
         1*FATHER + 2*MOTHER + 4*DAUGHTER1 + 8* SON1 + 16*DAUGHTER2 + 32*SON2
 }
@@ -113,39 +115,57 @@ family <- unique(titanic$Team[which(titanic$Team!="LoneWolf")])
 for(fam in family)
 {
         indices <- which(titanic$Team==fam);
-        
         famDf <- data.frame(Title=titanic$Title[indices],
                             Age=titanic$Age[indices],
                             Parch=titanic$Parch[indices],
                             SibSp=titanic$SibSp[indices],
-                            FamSize=titanic$FamSize[indices]);
+                            FamSize=titanic$FamSize[indices],
+                            Relation=titanic$Relation[indices]);
         famDf <- famDf[order(famDf$Age),];
         famDf <- famDf[rev(order(famDf$Title)),];
-        print(famDf)
-        
+        #print(famDf)
         fa<-0; ma<-0; d1<-0; s1<-0; d2<-0; s2<-0;
-        
         daughters <- 0;  sons <- 0;
         
-        # Married couples:
-        if(famDf$FamSize[1]==2  && famDf$SibSp[1]==1){
-                if(famDf$Title[1]=="Mrs." || famDf$Title[1]=="Lady."){
-                        if(length(indices)==1) {fa<-1; ma<-1}
-                        else{
-                                if(famDf$Title[2]=="Mr." || famDf$Title[2]=="Sir."){
-                                        if(famDf$Age[2]>=famDf$Age[1]-6){
-                                                fa<-1; ma<-1
-                                        }  
-                                }
-                        }
+        # Groups of two that are either married couples or siblings
+        if(famDf$SibSp[1]==1 && famDf$FamSize[1]==2)
+        {
+                # Married couple
+                if(famDf$Title[1]=="Mrs."){
+                        if( length(indices==1)||
+                            (famDf$Title[2]=="Mr." && famDf$Age[2]>= famDf$Age[1]-8) )
+                                {fa<-1;ma<-1}                
                 }
-                else if (famDf$Title[1]=="Mr." || famDf$Title[1]=="Sir."){
-                        if(length(indices)==1 && famDf$Age[1]>=18){
-                                fa<-1; ma<-1
-                        }
+                # Married couple
+                else if(famDf$Title[1]=="Mr." && famDf$Age[1]>=18 && length(indices)==1)
+                        {fa<-1;ma<-1}
+                else if(famDf$Title[1]=="Miss.")
+                {   
+                        # Brother and Sister
+                        if("Mr." %in% famDf$Title || "Master." %in% famDf$Title)
+                                {d1<-1;s1<-1}  
+                        # Two sisters
+                        else    {d1<-1;d2<-1}
                 }
-                titanic$Relation[indices] <- tie(FATHER=fa, MOTHER=ma)
-        }  
+                # Two brothers
+                else if (famDf$Title[1]=="Master.")     
+                        {s1<-1;s2<-1}
+                # Covers Sir., Lady., and Mr.s having length(indices)>1
+                else # The first title in the indices is Mr., Sir. or Lady.
+                {
+                        if(famDf$Title[1]=="Mr." && length(indices)>1){
+                                if(famDf$Title[2]=="Miss.")     {d1<-1; s1<-1}
+                                else    {s1<-1; s2<-1}
+                        }
+                        else    {fa<-1;ma<-1}
+                }   
+                
+                titanic$Relation[indices] <- tie(FATHER=fa, MOTHER=ma,
+                                                 DAUGHTER1=d1, SON1=s1,
+                                                 DAUGHTER2=d2,SON2=s2)  
+        }
+        
+        
 }
 
 
