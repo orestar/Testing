@@ -44,6 +44,7 @@ library(caret); library(randomForest); library(reshape2); library(stringr)
         lifeBoatData$Class <- str_sub(lifeBoatData$Class,1,1)
         lifeBoatData$Class <- as.integer(lifeBoatData$Class)
         
+        
         lifeBoatData$Name <- gsub("Mrs","Pineapple",lifeBoatData$Name,fixed=TRUE)
         lifeBoatData$Name <- gsub("Mr","Mr.",lifeBoatData$Name,fixed=TRUE)
         lifeBoatData$Name <- gsub("Pineapple","Mrs.",lifeBoatData$Name,fixed=TRUE)
@@ -58,6 +59,7 @@ library(caret); library(randomForest); library(reshape2); library(stringr)
         lifeBoatData$Name <- gsub("Father","Rev.",lifeBoatData$Name,fixed=TRUE)
         lifeBoatData$Name <- gsub("Reverend","Rev.",lifeBoatData$Name,fixed=TRUE)
         
+        
         lifeBoatData$Name2 <- toupper(lifeBoatData$Name)
         lifeBoatData$Surname<- sapply(lifeBoatData$Name2, 
                                       function(x) str_split(x," ")[[1]][1])
@@ -66,12 +68,11 @@ library(caret); library(randomForest); library(reshape2); library(stringr)
         lifeBoatData$Firstname<- sapply(lifeBoatData$Name2, 
                                     function(x) str_split(x," ")[[1]][3])
         
+        # First pass
         lifeBoatData$Key <- paste(lifeBoatData$Class,
                                   lifeBoatData$Surname,
                                   lifeBoatData$Firstname,
                                   sep=" ")
-      
-        
         titanic$Name2 <- toupper(titanic$Name)
         titanic$Name2 <- gsub(",","",titanic$Name2,fixed=TRUE)
         titanic$Surname<- sapply(titanic$Name2, 
@@ -80,32 +81,73 @@ library(caret); library(randomForest); library(reshape2); library(stringr)
                                     function(x) str_split(x," ")[[1]][2])
         titanic$Firstname<- sapply(titanic$Name2, 
                                         function(x) str_split(x," ")[[1]][3])
-        
         titanic$Key <- paste(titanic$Pclass,
                              titanic$Surname,
                              titanic$Firstname,
                              sep=" ")
-        
+        result1 <- sum(titanic$Key %in% lifeBoatData$Key)/length(titanic$Key)
         matchedT <- which(titanic$Key %in% lifeBoatData$Key)
         matchedL <- which(lifeBoatData$Key %in% titanic$Key)
         
+        # Second pass
         tickets <- as.character(lifeBoatData$Ticket)
         ticketNumber <- sapply(tickets,function(x) strsplit(x,";")[[1]][1])
         ticketNumber <- as.vector( ticketNumber)
         lifeBoatData$TicketNumber <- ticketNumber
-        
         lifeBoatData$Key[-matchedL] <- paste(lifeBoatData$Class[-matchedL],
                                              lifeBoatData$TicketNumber[-matchedL],
                                              lifeBoatData$Firstname[-matchedL],
                                              sep=" ")
-        
         titanic$Key[-matchedT] <- paste(titanic$Pclass[-matchedT],
                              titanic$Ticket[-matchedT],
                              titanic$Firstname[-matchedT],
                              sep=" ")
+        result2 <- sum(titanic$Key %in% lifeBoatData$Key)/length(titanic$Key)
+        matchedT <- which(titanic$Key %in% lifeBoatData$Key)
+        matchedL <- which(lifeBoatData$Key %in% titanic$Key)
+                
+        # Third pass
+        cleanTicket <- function(x){
+                result <- x;
+                x <- str_split(x," ")
+                if(length(x[[1]])>1) result <- x[[1]][2]
+                result
+        }
+        cleanticketL <- sapply(lifeBoatData$TicketNumber[-matchedL], function(x) cleanTicket(x))
+        cleanticketL <- as.vector(cleanticketL)
+        lifeBoatData$Key[-matchedL] <- paste(lifeBoatData$Class[-matchedL],
+                                             cleanticketL,
+                                             lifeBoatData$Firstname[-matchedL],
+                                             sep=" ")
+        cleanticketT <- sapply(titanic$Ticket[-matchedT], function(x) cleanTicket(x))
+        cleanticketT <- as.vector(cleanticketT)
+        titanic$Key[-matchedT] <- paste(titanic$Pclass[-matchedT],
+                                        cleanticketT,
+                                        titanic$Firstname[-matchedT],
+                                        sep=" ")
+        result3 <- sum(titanic$Key %in% lifeBoatData$Key)/length(titanic$Key)
+        matchedT <- which(titanic$Key %in% lifeBoatData$Key)
+        matchedL <- which(lifeBoatData$Key %in% titanic$Key)
         
-        sum(titanic$Key %in% lifeBoatData$Key)/length(titanic$Key)
-
+        
+        # Fourth pass
+        cleanticketL <- sapply(lifeBoatData$TicketNumber[-matchedL], function(x) cleanTicket(x))
+        cleanticketL <- as.vector(cleanticketL)
+        lifeBoatData$Key[-matchedL] <- paste(lifeBoatData$Class[-matchedL],
+                                             cleanticketL,
+                                             lifeBoatData$Age[-matchedL],
+                                             sep=" ")
+        cleanticketT <- sapply(titanic$Ticket[-matchedT], function(x) cleanTicket(x))
+        cleanticketT <- as.vector(cleanticketT)
+        titanic$Key[-matchedT] <- paste(titanic$Pclass[-matchedT],
+                                        cleanticketT,
+                                        titanic$Age[-matchedT],
+                                        sep=" ")
+        result4 <- sum(titanic$Key %in% lifeBoatData$Key)/length(titanic$Key)
+        matchedT <- which(titanic$Key %in% lifeBoatData$Key)
+        matchedL <- which(lifeBoatData$Key %in% titanic$Key)
+        
+        
 }
 
 titanic$Name2 <- toupper(titanic$Name)
