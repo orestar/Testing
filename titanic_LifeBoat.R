@@ -159,14 +159,23 @@ library(caret); library(randomForest); library(reshape2); library(stringr)
         result5 <- sum(titanic$Key %in% lifeBoatData$Key)/length(titanic$Key)
         matchedT <- which(titanic$Key %in% lifeBoatData$Key)
         matchedL <- which(lifeBoatData$Key %in% titanic$Key)
-        
-        
+
         # Sixth pass
         write.csv(lifeBoatData$Key[-matchedL],"lifeBoat_Unmatched.csv")
-        write.csv(lifeBoatData$Key[-matchedL],"lifeBoat_Unmatched.csv")
+        write.csv(titanic$Key[-matchedT],"titanic_Unmatched.csv")
+        match <- read.csv("matched.csv")
+        for(i in 1:nrow(match)){
+                keyt <- match$titanic[i]; keyl <- match$lifeboat[i]
+                key <- match$key[i]
+                titanic$Key[which(titanic$Key==keyt)] <- key
+                lifeBoatData$Key[which(lifeBoatData$Key==keyl)] <- key
+        }
+        result6 <- sum(titanic$Key %in% lifeBoatData$Key)/length(titanic$Key)
         
-        titanic$Key[-matchedT]
-        lifeBoatData$Key[-matchedL]
+        unmatchedT <- which(!titanic$Key %in% lifeBoatData$Key)
+        
+        
+     
 }
 
 titanic$Name2 <- toupper(titanic$Name)
