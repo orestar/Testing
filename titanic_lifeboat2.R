@@ -1,0 +1,168 @@
+####################  Loading and Processing  ################################
+library(caret); library(randomForest);library(stringr)
+
+# Loads and combines the data.
+{
+        # Data on Lifeboats
+        lifeBoatData <- read.csv("http://mysafeinfo.com/api/data?list=titanic&format=csv")
+        
+        test <- read.csv("test.csv")
+        test <- cbind(PassengerId=test[,1], Survived=c(NA),test[,2:length(test)])
+        titanic <- read.csv("train.csv")
+        
+        # Combines the training set and the actual test set so that
+        # the test set will be processed and ready to undergo the prediction.
+        titanic <- rbind(titanic,test)       
+}
+
+# Removes entries from the lifeboat data which are not relevant for the prediction.
+{
+lifeBoatData <- lifeBoatData[!lifeBoatData$Board.Point=="Belfast",] 
+lifeBoatData <- lifeBoatData[!lifeBoatData$Ticket=="",] 
+lifeBoatData <- lifeBoatData[!lifeBoatData$Status=="Unknown",]
+lifeBoatData <- lifeBoatData[lifeBoatData$Passenger.Type!="Deck Crew"&
+                             lifeBoatData$Passenger.Type!="Engineering Crew" &
+                             lifeBoatData$Passenger.Type!="Restaurant Staff" &
+                             lifeBoatData$Passenger.Type!="Victualling Crew",]
+}
+
+# Imputes the missing Embarked entries for the titanic data.
+{
+        titanic$Embarked[titanic$Embarked==""] <- "C"
+}
+
+# Removes irrelevant variables of the lifeboat data.
+{
+lifeBoatData <- lifeBoatData[, -c(3,6,9)]
+names(lifeBoatData) <- c("Name", "Age", "Class","Embarked","Ticket", "Lifeboat") 
+}
+# Extracts class of the lifeboat data.
+{
+lifeBoatData$Class <- as.character(lifeBoatData$Class)
+lifeBoatData$Class <- str_sub(lifeBoatData$Class,1,1)
+lifeBoatData$Class <- as.integer(lifeBoatData$Class)
+}
+# Extracts embarkation of the lifeboat data.
+{
+lifeBoatData$Embarked <- gsub("Cherbourg", "C", lifeBoatData$Embarked, fixed=TRUE)
+lifeBoatData$Embarked <- gsub("Cobh", "Q", lifeBoatData$Embarked, fixed=TRUE)
+lifeBoatData$Embarked <- gsub("Southampton", "S", lifeBoatData$Embarked, fixed=TRUE)
+}
+# Modifies the titles in the lifeboat data.
+{
+lifeBoatData$Name <- gsub("Mrs","Pineapple",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Mr","Mr.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Pineapple","Mrs.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Miss","Miss.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Ms","Miss.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Master","Master.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Captain","Sir.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Colonel","Sir.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Don","Sir.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Father","Sir.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Major","Sir.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Father","Sir.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Reverend","Sir.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Rev","Sir.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Dr","Dr.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Dona","Lady.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Mme","Lady.",lifeBoatData$Name,fixed=TRUE)
+lifeBoatData$Name <- gsub("Mlle","Lady.",lifeBoatData$Name,fixed=TRUE)
+}
+
+# Extracts surname, title and first name, all in upper case from the lifeboat data.
+{
+lifeBoatData$Name2 <- toupper(lifeBoatData$Name)
+lifeBoatData$Surname<- sapply(lifeBoatData$Name2, 
+                              function(x) str_split(x," ")[[1]][1])
+lifeBoatData$Title<- sapply(lifeBoatData$Name2, 
+                            function(x) str_split(x," ")[[1]][2])
+lifeBoatData$Firstname<- sapply(lifeBoatData$Name2, 
+                                function(x) str_split(x," ")[[1]][3])
+#summary(as.factor(lifeBoatData$Title))
+indicesCommonTitlesL <- which(lifeBoatData$Title=="MR."|
+                             lifeBoatData$Title=="MRS."|
+                             lifeBoatData$Title=="MISS."|
+                             lifeBoatData$Title=="MASTER."|
+                             lifeBoatData$Title=="DR."|
+                             lifeBoatData$Title=="SIR."|
+                             lifeBoatData$Title=="LADY.")
+#lifeBoatData$Name2[-indicesCommonTitlesL]
+indxL <- setdiff(1:nrow(lifeBoatData),indicesCommonTitlesL)
+#write.csv(data.frame(indxL,lifeBoatData$Name2[-indicesCommonTitlesL]),"lifeWeirdNames.csv")
+tidyNamesL <- read.csv("tidyNamesL.csv")
+tidyNamesL$Title <- as.character(tidyNamesL$Title)
+tidyNamesL$Surname <- as.character(tidyNamesL$Surname)
+tidyNamesL$Firstname <- as.character(tidyNamesL$Firstname)
+for(i in 1:nrow(tidyNamesL)){
+        index <- tidyNamesL$indxL[i];
+        lifeBoatData$Title[index] <- tidyNamesL$Title[i];
+        lifeBoatData$Surname[index] <- tidyNamesL$Surname[i];
+        lifeBoatData$Firstname[index] <- tidyNamesL$Firstname[i];
+}
+}
+
+# Extracts surname, title and first name, all in upper case from the titanic data.
+{
+titanic$Name2 <- toupper(titanic$Name)
+titanic$Name2 <- gsub(",","",titanic$Name2,fixed=TRUE)
+titanic$Surname<- sapply(titanic$Name2, 
+                         function(x) str_split(x," ")[[1]][1])
+titanic$Title<- sapply(titanic$Name2, 
+                       function(x) str_split(x," ")[[1]][2])
+titanic$Firstname<- sapply(titanic$Name2, 
+                           function(x) str_split(x," ")[[1]][3])
+#summary(as.factor(titanic$Title))
+indicesCommonTitlesT <- which(titanic$Title=="MR."|
+                              titanic$Title=="MRS."|
+                              titanic$Title=="MISS."|
+                              titanic$Title=="MASTER."|
+                              titanic$Title=="DR."|
+                              titanic$Title=="SIR."|
+                              titanic$Title=="LADY.")
+#titanic$Name2[-indicesCommonTitlesT]
+indxT <- setdiff(1:nrow(titanic),indicesCommonTitlesT)
+#write.csv(data.frame(indxT,titanic$Name2[-indicesCommonTitlesT]),"titanicWeirdNames.csv")
+tidyNamesT <- read.csv("tidyNamesT.csv")
+tidyNamesT$Title <- as.character(tidyNamesT$Title)
+tidyNamesT$Surname <- as.character(tidyNamesT$Surname)
+tidyNamesT$Firstname <- as.character(tidyNamesT$Firstname)
+for(i in 1:nrow(tidyNamesT)){
+        index <- tidyNamesT$indxT[i];
+        titanic$Title[index] <- tidyNamesT$Title[i];
+        titanic$Surname[index] <- tidyNamesT$Surname[i];
+        titanic$Firstname[index] <- tidyNamesT$Firstname[i];
+}
+}
+
+
+
+
+# Merges the lifeboat data to the Titanic data.
+
+
+
+
+tickets <- as.character(lifeBoatData$Ticket)
+ticketNumber <- sapply(tickets,function(x) strsplit(x,";")[[1]][1])
+ticketNumber <- as.vector( ticketNumber)
+lifeBoatData$TicketNumber <- ticketNumber
+
+
+# Pass1
+lifeBoatData$Key <- paste(lifeBoatData$Class,
+                          lifeBoatData$TicketNumber,
+                          lifeBoatData$Firstname,
+                          lifeBoatData$Surname,
+                          sep=" ")
+titanic$Key <- paste(titanic$Pclass,
+                     titanic$Ticket,
+                     titanic$Firstname,
+                     titanic$Surname,
+                     sep=" ")
+result1 <- sum(titanic$Key %in% lifeBoatData$Key)/length(titanic$Key)
+matchedT <- which(titanic$Key %in% lifeBoatData$Key)
+matchedL <- which(lifeBoatData$Key %in% titanic$Key)
+length(matchedT); length(matchedL)
+
+length(unique(titanic$Key));length(titanic$Key)
