@@ -139,8 +139,18 @@ lifeBoatData$TicketNumber <- ticketNumber
 }
 
 # Creates ShortTicket for each of the lifeboat and titanic data.
-
-
+{
+shortTicket <- function(x){
+        result <- x;
+        x <- str_split(x," ")
+        if(length(x[[1]])>1) result <- x[[1]][2]
+        result
+}
+cleanticketL <- sapply(lifeBoatData$TicketNumber, function(x) shortTicket(x))
+lifeBoatData$ShortTicket <- as.vector(cleanticketL)
+cleanticketT <- sapply(titanic$Ticket, function(x) shortTicket(x))
+titanic$ShortTicket <- as.vector(cleanticketT)
+}
 
 # Splits the titanic data into two subsets: with Age and without Age entries.
 {
@@ -233,6 +243,7 @@ length(matchedT_Age); length(matchedL_Age)
 length(unique(titanic_Age$Key));length(titanic_Age$Key)
 }
 # Pass 5
+{
 lifeBoatData$Key[-matchedL_Age] <- paste(lifeBoatData$Class[-matchedL_Age],
                                          lifeBoatData$Title[-matchedL_Age],
                                          lifeBoatData$Surname[-matchedL_Age],
@@ -249,3 +260,80 @@ matchedT_Age <- which(titanic_Age$Key %in% lifeBoatData$Key)
 matchedL_Age <- which(lifeBoatData$Key %in% titanic_Age$Key)
 length(matchedT_Age); length(matchedL_Age)
 length(unique(titanic_Age$Key));length(titanic_Age$Key)
+}
+# Pass 6
+{
+lifeBoatData$Key[-matchedL_Age] <- paste(lifeBoatData$Class[-matchedL_Age],
+                                         lifeBoatData$Title[-matchedL_Age],
+                                         lifeBoatData$ShortTicket[-matchedL_Age],
+                                         lifeBoatData$Firstname[-matchedL_Age],
+                                         #lifeBoatData$Age[-matchedL_Age],
+                                         sep=" ")
+titanic_Age$Key[-matchedT_Age] <- paste(titanic_Age$Pclass[-matchedT_Age],
+                                        titanic_Age$Title[-matchedT_Age],
+                                        titanic_Age$ShortTicket[-matchedT_Age],
+                                        titanic_Age$Firstname[-matchedT_Age],
+                                        #titanic_Age$Age[-matchedT_Age],
+                                        sep=" ")
+result_Age6 <- sum(titanic_Age$Key %in% lifeBoatData$Key)/length(titanic_Age$Key)
+result_Age6
+matchedT_Age <- which(titanic_Age$Key %in% lifeBoatData$Key)
+matchedL_Age <- which(lifeBoatData$Key %in% titanic_Age$Key)
+length(matchedT_Age); length(matchedL_Age)
+length(unique(titanic_Age$Key));length(titanic_Age$Key)
+}
+# Pass 7
+{
+lifeBoatData$Key[-matchedL_Age] <- paste(lifeBoatData$Class[-matchedL_Age],
+                                         lifeBoatData$Title[-matchedL_Age],
+                                         lifeBoatData$ShortTicket[-matchedL_Age],
+                                         lifeBoatData$Surname[-matchedL_Age],
+                                         #lifeBoatData$Age[-matchedL_Age],
+                                         sep=" ")
+titanic_Age$Key[-matchedT_Age] <- paste(titanic_Age$Pclass[-matchedT_Age],
+                                        titanic_Age$Title[-matchedT_Age],
+                                        titanic_Age$ShortTicket[-matchedT_Age],
+                                        titanic_Age$Surname[-matchedT_Age],
+                                        #titanic_Age$Age[-matchedT_Age],
+                                        sep=" ")
+result_Age7 <- sum(titanic_Age$Key %in% lifeBoatData$Key)/length(titanic_Age$Key)
+result_Age7
+matchedT_Age <- which(titanic_Age$Key %in% lifeBoatData$Key)
+matchedL_Age <- which(lifeBoatData$Key %in% titanic_Age$Key)
+# This is an avoidable error to be fixed manuelly.
+err <- which(lifeBoatData$Key=="3 MASTER. 2343 SAGE"&lifeBoatData$Age==4)
+matchedL_Age <- matchedL_Age[matchedL_Age!=err]
+
+length(matchedT_Age); length(matchedL_Age)
+length(unique(titanic_Age$Key));length(titanic_Age$Key)
+}
+
+# Pass 8
+{
+        lifeBoatData$Key[-matchedL_Age] <- paste(lifeBoatData$Class[-matchedL_Age],
+                                                 lifeBoatData$Title[-matchedL_Age],
+                                                 #lifeBoatData$Firstname[-matchedL_Age],
+                                                 lifeBoatData$Surname[-matchedL_Age],
+                                                 #lifeBoatData$Age[-matchedL_Age],
+                                                 sep=" ")
+        titanic_Age$Key[-matchedT_Age] <- paste(titanic_Age$Pclass[-matchedT_Age],
+                                                titanic_Age$Title[-matchedT_Age],
+                                                #titanic_Age$Firstname[-matchedT_Age],
+                                                titanic_Age$Surname[-matchedT_Age],
+                                                #titanic_Age$Age[-matchedT_Age],
+                                                sep=" ")
+        result_Age8 <- sum(titanic_Age$Key %in% lifeBoatData$Key)/length(titanic_Age$Key)
+        result_Age8
+        matchedT_Age <- which(titanic_Age$Key %in% lifeBoatData$Key)
+        matchedL_Age <- which(lifeBoatData$Key %in% titanic_Age$Key)
+        # This is an avoidable error to be fixed manuelly.
+        err <- which(lifeBoatData$Key=="3 MASTER. 2343 SAGE"&lifeBoatData$Age==4)
+        matchedL_Age <- matchedL_Age[matchedL_Age!=err]
+        
+        length(matchedT_Age); length(matchedL_Age)
+        length(unique(titanic_Age$Key));length(titanic_Age$Key)
+}
+
+same <- as.factor(titanic_Age$Key)
+summary(same)
+titanic_Age[which(titanic_Age$Key=="3 MR. 2. MATTI"), ]
