@@ -441,6 +441,26 @@ length(unique(titanic_Age$Key));length(titanic_Age$Key)
         matchedL_Age <- which(lifeBoatData$Key %in% titanic_Age$Key)
         length(matchedT_Age); length(matchedL_Age)
         length(unique(titanic_Age$Key));length(titanic_Age$Key)
+        
+        err <- which(lifeBoatData$Key=="3 S MR. 29"&lifeBoatData$Surname!="SCHEERLINCK")
+        for(i in 1:length(err))
+                lifeBoatData$Key[err[i]] <- paste("3 S MR. 29_",i,sep="")
+        err <- which(lifeBoatData$Key=="2 S MR. 32"&lifeBoatData$Surname!="BRITO")
+        for(i in 1:length(err))
+                lifeBoatData$Key[err[i]] <- paste("2 S MR. 32_",i,sep="")
+        
+        err <- which(lifeBoatData$Key=="3 S MR. 25")
+        for(i in 1:length(err))
+                lifeBoatData$Key[err[i]] <- paste("3 S MR. 25_",2*i,sep="")
+        #err <- which(titanic_Age$Key=="3 S MR. 25")
+        #titanic_Age$Key[err] <- 
+        
+        result_Age13.5 <- sum(titanic_Age$Key %in% lifeBoatData$Key)/length(titanic_Age$Key)
+        result_Age13.5
+        matchedT_Age <- which(titanic_Age$Key %in% lifeBoatData$Key)
+        matchedL_Age <- which(lifeBoatData$Key %in% titanic_Age$Key)
+        length(matchedT_Age); length(matchedL_Age)
+        length(unique(titanic_Age$Key));length(titanic_Age$Key)
 }
 
 
