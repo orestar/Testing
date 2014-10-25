@@ -536,11 +536,10 @@ length(unique(titanic_Age$Key));length(titanic_Age$Key)
 # Pass18: Cannot match with algorithm anymore. These keys will be marked with "???"
 {
         titanic_Age$Key[-matchedT_Age] <- "???"
+        lifeBoatData$Key[-matchedL_Age] <- 
 }
 
 }
-
-
 
 
 
@@ -548,6 +547,19 @@ length(unique(titanic_Age$Key));length(titanic_Age$Key)
 
 # Merges the lifeboat data to the Titanic_NoAge data.
 matchedL_NoAge <- matchedL_Age
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Pass1: Class, Title, Firstname, Ticket
 {
         lifeBoatData$Key[-matchedL_NoAge] <- paste(lifeBoatData$Class[-matchedL_NoAge],
@@ -629,7 +641,7 @@ matchedL_NoAge <- matchedL_Age
         
         result_NoAge4.5 <- sum(titanic_NoAge$Key %in% lifeBoatData$Key)/length(titanic_NoAge$Key)
         result_NoAge4.5
-        matchedT_NoAge <- which(titanic_NoAge$Key %in% lifeBoatData$Key)
+        atchedT_NoAge <- which(titanic_NoAge$Key %in% lifeBoatData$Key)
         matchedL_NoAge <- which(lifeBoatData$Key %in% titanic_NoAge$Key)
         length(matchedT_NoAge); length(matchedL_NoAge)
         length(unique(titanic_NoAge$Key));length(titanic_NoAge$Key)        
@@ -653,6 +665,10 @@ matchedL_NoAge <- matchedL_Age
         length(matchedT_NoAge); length(matchedL_NoAge)
         length(unique(titanic_NoAge$Key));length(titanic_NoAge$Key)       
 }
+
+
+
+
 
 # Pass6: Class, Ticket 
 {
